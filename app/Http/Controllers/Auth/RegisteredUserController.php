@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Tenant;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,10 +37,18 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $tenant = Tenant::where('domain', request()->getHost())->first();
+    
+        if (!$tenant) {
+            // Optionally handle this scenario, e.g., throw an error or assign a default tenant
+            return redirect()->route('home')->withErrors('Tenant not found.');
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'tenant_id' => $tenant->id,
         ]);
 
         event(new Registered($user));
