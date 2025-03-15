@@ -33,28 +33,32 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
-
+    
+        // Ensure the tenant is found by the domain
         $tenant = Tenant::where('domain', request()->getHost())->first();
     
         if (!$tenant) {
-            // Optionally handle this scenario, e.g., throw an error or assign a default tenant
             return redirect()->route('home')->withErrors('Tenant not found.');
         }
-
+    
+        // Create the user and associate it with the tenant
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'tenant_id' => $tenant->id,
         ]);
-
-        event(new Registered($user));
-
+    
+        // Log the user in
         Auth::login($user);
-
-        return to_route('dashboard');
+    
+        // Optionally fire events
+        event(new Registered($user));
+    
+        // Redirect to the dashboard
+        return redirect()->route('dashboard');
     }
 }
