@@ -4,20 +4,23 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Spatie\Multitenancy\Models\Tenant;
+use Symfony\Component\HttpFoundation\Response;
 
 class TenantMiddleware
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param Request $request
+     *
+     * @param Closure $next
+     *
+     * @return Response
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $host = $request->getHost();
-        $tenant = Tenant::where('domain', $host)->first();
+        $tenant = Tenant::where('domain', $request->getHost())->first();
 
         if ($tenant) {
             $tenant->makeCurrent();

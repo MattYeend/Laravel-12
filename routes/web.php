@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Middleware\CheckTenant;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Middleware\CheckTenant;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
